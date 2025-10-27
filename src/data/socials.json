@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Twitter",
+    "icon": "ri:twitter-x-line",
+    "link": ""
+  },
+  {
+    "title": "Facebook",
+    "icon": "iconoir:facebook",
+    "link": ""
+  },
+  {
+    "title": "Whatsapp",
+    "icon": "ic:twotone-whatsapp",
+    "link": ""
+  }
+]

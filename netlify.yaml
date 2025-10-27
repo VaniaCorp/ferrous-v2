@@ -1,0 +1,9 @@
+# Netlify configuration for Next.js to ensure all route paths are handled correctly
+
+[build]
+  command = "bun run build"
+  publish = ".next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
