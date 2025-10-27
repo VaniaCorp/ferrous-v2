@@ -10,7 +10,8 @@ import { EffectComposer, HueSaturation, BrightnessContrast } from "@react-three/
 import { ThreeElements } from "@react-three/fiber";
 
 // Re-declare JSX types to ensure TypeScript picks them up
-declare global {
+declare module "react" {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       atmosphereMaterialImpl: ThreeElements["meshStandardMaterial"] & {
@@ -76,7 +77,8 @@ export function EarthModel({
 
   // Ensure directional light stays fixed relative to the group (so the same globe spot remains lit)
   useEffect(() => {
-    if (!groupRef.current) return;
+    const currentGroup = groupRef.current;
+    if (!currentGroup) return;
 
     // Create a directional light if not already created
     if (!lightRef.current) {
@@ -85,31 +87,33 @@ export function EarthModel({
       // target will be the group's origin (the globe)
       const tgt = new THREE.Object3D();
       tgt.position.set(0, 0, 0);
-      groupRef.current.add(tgt);
+      currentGroup.add(tgt);
       dl.target = tgt;
       lightRef.current = dl;
       // Add it to group so it rotates/moves with the globe
-      groupRef.current.add(dl);
+      currentGroup.add(dl);
     } else {
       // If it exists, ensure it's still a child of the group (re-parent on remount)
-      if (lightRef.current.parent !== groupRef.current) {
-        groupRef.current.add(lightRef.current);
+      if (lightRef.current.parent !== currentGroup) {
+        currentGroup.add(lightRef.current);
       }
       // ensure target is pointing to the group's origin
-      if (lightRef.current.target && lightRef.current.target.parent !== groupRef.current) {
+      if (lightRef.current.target && lightRef.current.target.parent !== currentGroup) {
         const tgt = new THREE.Object3D();
         tgt.position.set(0, 0, 0);
-        groupRef.current.add(tgt);
+        currentGroup.add(tgt);
         lightRef.current.target = tgt;
       }
     }
 
     // cleanup on unmount
     return () => {
-      if (lightRef.current && groupRef.current) {
+      if (lightRef.current && currentGroup) {
         try {
-          groupRef.current.remove(lightRef.current);
-        } catch (_) { }
+          currentGroup.remove(lightRef.current);
+        } catch {
+          // Ignore errors during cleanup
+        }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -121,7 +125,6 @@ export function EarthModel({
       <ambientLight intensity={0.01} color="#001133" />
       <mesh scale={[scale * 1.03, scale * 1.03, scale * 1.03]} position={[0, 0, 0]}>
         <sphereGeometry args={[1, 64, 64]} />
-        {/* @ts-expect-error - Custom shader material registered via extend() */}
         <atmosphereMaterialImpl
           uColor={colorMode === "gray" ? "#888" : "#4da6ff"}
           uIntensity={colorMode === "gray" ? 0.4 : 2.2}
@@ -136,7 +139,6 @@ export function EarthModel({
 
 export default function ModelBackground(props: EarthVisualState) {
   const { isMobile } = useDeviceSize();
-  const margin = isMobile ? 0.6 : 1;
 
   return (
     <Canvas

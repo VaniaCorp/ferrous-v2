@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import glowAnimation from "@/lottie/glow.json";
-import WorldBackground from '@/components/world-background';
 import HeroText from '@/ui/web/hero-text';
 import Info from '@/ui/web/info';
 const MiniGame = dynamic(() => import('@/ui/web/mini-game'), {

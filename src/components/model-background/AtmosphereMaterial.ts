@@ -1,7 +1,7 @@
 "use client";
 import { shaderMaterial } from "@react-three/drei"
 import * as THREE from "three"
-import { extend, type ThreeElements } from "@react-three/fiber"
+import { extend } from "@react-three/fiber"
 
 // 🩵 Fresnel-based atmospheric glow shader
 const AtmosphereMaterialImpl = shaderMaterial(
