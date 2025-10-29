@@ -13,60 +13,191 @@ export default function useEarthSequence(isGameComplete: boolean) {
     scaleMultiplier: 1.25,
   });
 
-  // Memoized state updaters for cleaner code
+  const [isGameInView, setIsGameInView] = useState(false);
+  const [isWaitlistInView, setIsWaitlistInView] = useState(false);
+
+  // Memoized state updaters that respect game completion state
   const setGameInView = useCallback(() => {
-    setVisualState({
-      colorMode: "gray",
+    setIsGameInView(true);
+    setVisualState((prev) => ({
+      colorMode: prev.colorMode, // Preserve color mode (gray or vibrant)
       positionMode: "center",
-      rotationEnabled: false,
+      rotationEnabled: prev.rotationEnabled, // Preserve rotation state
       scaleMultiplier: 1.0,
-    });
+    }));
   }, []);
 
   const setGameOutOfView = useCallback(() => {
-    setVisualState({
-      colorMode: "gray",
-      positionMode: "corner",
-      rotationEnabled: false,
-      scaleMultiplier: 1.25,
+    setIsGameInView(false);
+    // Only move to corner if waitlist is not in view (or game is not completed)
+    setVisualState((prev) => {
+      // If waitlist is in view AND game is completed, stay at center
+      if (isWaitlistInView && isGameComplete) {
+        return prev; // Keep current state
+      }
+      return {
+        colorMode: prev.colorMode, // Preserve color mode (gray or vibrant)
+        positionMode: "corner",
+        rotationEnabled: prev.rotationEnabled, // Preserve rotation state
+        scaleMultiplier: prev.rotationEnabled ? (isMobile ? 2 : 1.25) : 1.25, // Use completion scale if rotating
+      };
     });
-  }, []);
+  }, [isMobile, isWaitlistInView, isGameComplete]);
 
-  // Handle scroll-based visibility (only when game not complete)
+  const setWaitlistInView = useCallback(() => {
+    setIsWaitlistInView(true);
+    // Only move to center if game is completed
+    if (isGameComplete) {
+      setVisualState((prev) => ({
+        colorMode: prev.colorMode, // Should be vibrant when game is complete
+        positionMode: "center",
+        rotationEnabled: prev.rotationEnabled, // Should be true when game is complete
+        scaleMultiplier: 1.0,
+      }));
+    }
+  }, [isGameComplete]);
+
+  const setWaitlistOutOfView = useCallback(() => {
+    setIsWaitlistInView(false);
+    // Only move to corner if game is not in view
+    if (!isGameInView) {
+      setVisualState((prev) => ({
+        colorMode: prev.colorMode,
+        positionMode: "corner",
+        rotationEnabled: prev.rotationEnabled,
+        scaleMultiplier: prev.rotationEnabled ? (isMobile ? 2 : 1.25) : 1.25,
+      }));
+    }
+  }, [isGameInView, isMobile]);
+
+  // Handle scroll-based visibility for mini-game (works even after game completion)
   useEffect(() => {
-    if (typeof document === "undefined" || isGameComplete) return;
+    if (typeof document === "undefined") return;
 
-    const miniGameSection = document.getElementById("spell");
-    if (!miniGameSection) return;
+    let timeoutId: NodeJS.Timeout;
+    let observer: IntersectionObserver | null = null;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setGameInView();
-          } else {
-            setGameOutOfView();
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
+    const setupObserver = () => {
+      const miniGameSection = document.getElementById("spell");
+      
+      if (!miniGameSection) {
+        // Retry after a short delay if element not found (handles dynamic loading)
+        timeoutId = setTimeout(setupObserver, 100);
+        return;
+      }
 
-    observer.observe(miniGameSection);
-    return () => observer.disconnect();
-  }, [isGameComplete, setGameInView, setGameOutOfView]);
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setGameInView();
+            } else {
+              setGameOutOfView();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
 
-  // Handle game completion — stays vibrant and spinning
+      observer.observe(miniGameSection);
+      
+      // Initial check: if already in view when observer is set up
+      const rect = miniGameSection.getBoundingClientRect();
+      const isVisible = 
+        rect.top < window.innerHeight * 0.5 && 
+        rect.bottom > window.innerHeight * 0.5;
+      
+      if (isVisible) {
+        setGameInView();
+      }
+    };
+
+    setupObserver();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (observer) observer.disconnect();
+    };
+  }, [setGameInView, setGameOutOfView]);
+
+  // Handle scroll-based visibility for waitlist (only when game is completed)
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    let timeoutId: NodeJS.Timeout;
+    let observer: IntersectionObserver | null = null;
+
+    const setupObserver = () => {
+      const waitlistSection = document.getElementById("waitlist");
+      
+      if (!waitlistSection) {
+        // Retry after a short delay if element not found (handles dynamic loading)
+        timeoutId = setTimeout(setupObserver, 100);
+        return;
+      }
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setWaitlistInView();
+            } else {
+              setWaitlistOutOfView();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+
+      observer.observe(waitlistSection);
+      
+      // Initial check: if already in view when observer is set up and game is completed
+      const rect = waitlistSection.getBoundingClientRect();
+      const isVisible = 
+        rect.top < window.innerHeight * 0.5 && 
+        rect.bottom > window.innerHeight * 0.5;
+      
+      if (isVisible && isGameComplete) {
+        setWaitlistInView();
+      }
+    };
+
+    setupObserver();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (observer) observer.disconnect();
+    };
+  }, [setWaitlistInView, setWaitlistOutOfView, isGameComplete]);
+
+  // Handle game completion — updates color and rotation, preserves position
   useEffect(() => {
     if (isGameComplete) {
-      setVisualState({
+      setVisualState((prev) => ({
         colorMode: "vibrant",
-        positionMode: "corner",
+        positionMode: prev.positionMode, // Preserve current position mode (will be updated by waitlist/game observers if needed)
         rotationEnabled: true,
-        scaleMultiplier: isMobile ? 2 : 1.25,
+        scaleMultiplier: prev.positionMode === "center" ? 1.0 : (isMobile ? 2 : 1.25), // Center uses 1.0, corner uses completion scale
+      }));
+      // If waitlist is already in view when game completes, move to center
+      if (isWaitlistInView) {
+        setWaitlistInView();
+      }
+    } else {
+      // When game is reset, go back to gray, preserve position
+      setVisualState((prev) => {
+        // If waitlist is in view but game is not complete, move to corner
+        // Otherwise preserve position (unless game is in view, which will handle it)
+        const shouldBeAtCorner = isWaitlistInView && !isGameInView;
+        return {
+          colorMode: "gray",
+          positionMode: shouldBeAtCorner ? "corner" : prev.positionMode, // Move to corner if waitlist forces center but game not complete
+          rotationEnabled: false,
+          scaleMultiplier: shouldBeAtCorner ? 1.25 : (prev.positionMode === "center" ? 1.0 : 1.25), // Use appropriate scale
+        };
       });
     }
-  }, [isGameComplete, isMobile]);
+  }, [isGameComplete, isMobile, isWaitlistInView, isGameInView, setWaitlistInView]);
 
   return visualState;
 }

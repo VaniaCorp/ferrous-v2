@@ -1,6 +1,6 @@
 "use client";
 import "@/components/model-background/AtmosphereMaterial";
-import React, { Suspense, useRef, useMemo, useEffect } from "react";
+import React, { Suspense, useRef, useMemo, useEffect, useState } from "react";
 import useDeviceSize from "@/hooks/useDeviceSize";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
@@ -29,28 +29,45 @@ export type EarthVisualState = {
   scaleMultiplier?: number;
 };
 
-export function EarthModel({
+// Mobile Earth Model Component - loads only mobile model
+function MobileEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
+  const { scene } = useGLTF("/models/earth-1k.glb", true);
+  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} isMobile={true} groupRef={groupRef} lightRef={lightRef} />;
+}
+
+// Desktop Earth Model Component - loads only desktop model
+function DesktopEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
+  const { scene } = useGLTF("/models/earth-4k.glb", true);
+  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} isMobile={false} groupRef={groupRef} lightRef={lightRef} />;
+}
+
+// Shared content component to avoid code duplication
+function EarthModelContent({
+  scene,
   colorMode,
   positionMode,
   rotationEnabled,
-  scaleMultiplier = 1,
-}: EarthVisualState) {
-  const groupRef = useRef<Group | null>(null);
-  const lightRef = useRef<DirectionalLight | null>(null);
-  const { isMobile } = useDeviceSize();
-
-  // Load GLTF scenes
-  const { scene: mobileScene } = useGLTF("/models/earth-1k.glb");
-  const { scene: desktopScene } = useGLTF("/models/earth-4k.glb");
-  const scene = isMobile ? mobileScene : desktopScene;
-
+  scaleMultiplier,
+  isMobile,
+  groupRef,
+  lightRef,
+}: {
+  scene: THREE.Group;
+  colorMode: "gray" | "vibrant";
+  positionMode: "corner" | "center";
+  rotationEnabled: boolean;
+  scaleMultiplier: number;
+  isMobile: boolean;
+  groupRef: React.RefObject<Group | null>;
+  lightRef: React.RefObject<DirectionalLight | null>;
+}) {
   // Base scale (responsive) and derived scale
   const baseScale = isMobile ? 1 : 1.2;
   const scale = baseScale * scaleMultiplier;
 
   // Target positions (world coordinates relative to group origin)
   const cornerTarget = useMemo(
-    () => new THREE.Vector3(isMobile ? -1.8 : -112.4, isMobile ? -1.2 : -132.6, isMobile ? -570 : -370),
+    () => new THREE.Vector3(isMobile ? -1.8 : -72.4, isMobile ? -72.2 : -132.6, isMobile ? -470 : -170),
     [isMobile]
   );
   const centerTarget = useMemo(
@@ -60,6 +77,14 @@ export function EarthModel({
 
   // The desired target depending on positionMode
   const desiredTarget = positionMode === "center" ? centerTarget : cornerTarget;
+
+  // Initialize position to corner immediately on mount
+  useEffect(() => {
+    if (groupRef.current) {
+      groupRef.current.position.copy(cornerTarget);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Rotate (frame-rate independent) and lerp position for smooth motion
   useFrame((_, delta) => {
@@ -137,32 +162,107 @@ export function EarthModel({
   );
 }
 
+// Main Earth Model Component - conditionally renders mobile or desktop version
+export function EarthModel({
+  colorMode,
+  positionMode,
+  rotationEnabled,
+  scaleMultiplier = 1,
+}: EarthVisualState) {
+  const groupRef = useRef<Group | null>(null);
+  const lightRef = useRef<DirectionalLight | null>(null);
+  const { isMobile, width } = useDeviceSize();
+
+  // Wait for device detection (width will be null initially on server/initial render)
+  if (width === null) {
+    return null; // Return null until device is detected
+  }
+
+  // Conditionally render only the model needed for the current device
+  if (isMobile) {
+    return (
+      <MobileEarthModel
+        colorMode={colorMode}
+        positionMode={positionMode}
+        rotationEnabled={rotationEnabled}
+        scaleMultiplier={scaleMultiplier}
+        groupRef={groupRef}
+        lightRef={lightRef}
+      />
+    );
+  }
+
+  return (
+    <DesktopEarthModel
+      colorMode={colorMode}
+      positionMode={positionMode}
+      rotationEnabled={rotationEnabled}
+      scaleMultiplier={scaleMultiplier}
+      groupRef={groupRef}
+      lightRef={lightRef}
+    />
+  );
+}
+
 export default function ModelBackground(props: EarthVisualState) {
   const { isMobile } = useDeviceSize();
 
   return (
-    <Canvas
-      gl={{ alpha: false }}
-      style={{ background: "#000" }}
-      camera={{
-        // Push camera back slightly more for your large globe
-        position: [0, 0, isMobile ? 8 : 6],
-        fov: isMobile ? 45 : 50,
-        near: 0.1,
-        far: 1000,
-      }}
-    >
-      <Suspense fallback={null}>
-          <EarthModel {...props} />
-      </Suspense>
+    <>
+      <PreloadModels />
+      <Canvas
+        gl={{ alpha: false }}
+        style={{ background: "#000" }}
+        camera={{
+          // Push camera back slightly more for your large globe
+          position: [0, 0, isMobile ? 8 : 6],
+          fov: isMobile ? 45 : 50,
+          near: 0.1,
+          far: 1000,
+        }}
+      >
+        <Suspense fallback={null}>
+            <EarthModel {...props} />
+        </Suspense>
 
-      <EffectComposer>
-        <HueSaturation saturation={props.colorMode === "gray" ? -1 : 0} />
-        <BrightnessContrast brightness={0.05} contrast={0.4} />
-      </EffectComposer>
-    </Canvas>
+        <EffectComposer>
+          <HueSaturation saturation={props.colorMode === "gray" ? -1 : 0} />
+          <BrightnessContrast brightness={0.05} contrast={0.4} />
+        </EffectComposer>
+      </Canvas>
+    </>
   );
 }
 
-useGLTF.preload("/models/earth-1k.glb");
-useGLTF.preload("/models/earth-4k.glb");
+// Device-aware preloading component - handles preloading based on device
+function PreloadModels() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    
+    const width = window.innerWidth;
+    const isMobileDevice = width < 768;
+    
+    if (isMobileDevice) {
+      // Only preload mobile model on mobile devices
+      useGLTF.preload("/models/earth-1k.glb");
+    } else {
+      // Only preload desktop model on desktop devices
+      useGLTF.preload("/models/earth-4k.glb");
+    }
+  }, []);
+  
+  return null;
+}
+
+// Initialize preloading when component is imported (client-side only)
+if (typeof window !== "undefined") {
+  // Start preloading immediately on client-side
+  const width = window.innerWidth;
+  const isMobileDevice = width < 768;
+  
+  if (isMobileDevice) {
+    useGLTF.preload("/models/earth-1k.glb");
+  } else {
+    useGLTF.preload("/models/earth-4k.glb");
+  }
+}

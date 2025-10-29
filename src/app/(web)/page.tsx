@@ -145,12 +145,6 @@ export default function Home() {
         ))}
       </nav>
 
-      {/* <WorldBackground 
-        isMobile={isMobile}
-        isGameComplete={isGameComplete}
-        allowMotion={allowMotion}
-      /> */}
-
       <div className="fixed inset-0 -z-10 pointer-events-none">
         <ModelBackground {...visualState} />
       </div>
@@ -167,7 +161,9 @@ export default function Home() {
           loop
           width={0}
           height={0}
-          className='fixed w-[60em] h-[60em] max-md:hidden lg:w-max lg:h-max top-[50%] translate-y-[-50%] left-[-20%] xl:right-[-70%] inset-0 -z-10 pointer-events-none'
+          className={`fixed w-[60em] h-[60em] max-md:hidden lg:w-max lg:h-max top-[50%] translate-y-[-50%] left-[-20%] xl:right-[-70%] inset-0 -z-10 pointer-events-none transition-opacity duration-700 ease-in-out ${
+            visualState.positionMode === "center" ? "opacity-0" : "opacity-100"
+          }`}
         />
       )}
     </div>
