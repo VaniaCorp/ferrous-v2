@@ -34,7 +34,7 @@ export default function Home() {
   const pageRef = useRef<HTMLDivElement>(null);
   const { isMobile } = useDeviceSize();
   const [allowMotion, setAllowMotion] = useState(true);
-  const visualState = useEarthSequence(isGameComplete);
+  const visualState = useEarthSequence(isGameComplete, { z: -270 });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

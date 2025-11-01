@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect, useCallback } from "react";
 import useDeviceSize from "./useDeviceSize";
-import type { EarthVisualState } from "@/components/model-background";
+import type { EarthVisualState, WaitlistPosition } from "@/components/model-background";
 
-export default function useEarthSequence(isGameComplete: boolean) {
+export default function useEarthSequence(isGameComplete: boolean, waitlistPosition?: WaitlistPosition) {
   const { isMobile } = useDeviceSize();
 
   const [visualState, setVisualState] = useState<EarthVisualState>({
@@ -11,6 +11,7 @@ export default function useEarthSequence(isGameComplete: boolean) {
     positionMode: "corner",
     rotationEnabled: false,
     scaleMultiplier: 1.25,
+    waitlistPosition,
   });
 
   const [isGameInView, setIsGameInView] = useState(false);
@@ -24,6 +25,8 @@ export default function useEarthSequence(isGameComplete: boolean) {
       positionMode: "center",
       rotationEnabled: prev.rotationEnabled, // Preserve rotation state
       scaleMultiplier: 1.0,
+      waitlistPosition: prev.waitlistPosition, // Preserve waitlist position
+      isWaitlistActive: false, // Game is active, not waitlist
     }));
   }, []);
 
@@ -31,15 +34,20 @@ export default function useEarthSequence(isGameComplete: boolean) {
     setIsGameInView(false);
     // Only move to corner if waitlist is not in view (or game is not completed)
     setVisualState((prev) => {
-      // If waitlist is in view AND game is completed, stay at center
+      // If waitlist is in view AND game is completed, stay at center with waitlist active
       if (isWaitlistInView && isGameComplete) {
-        return prev; // Keep current state
+        return {
+          ...prev,
+          isWaitlistActive: true, // Ensure waitlist is marked as active
+        };
       }
       return {
         colorMode: prev.colorMode, // Preserve color mode (gray or vibrant)
         positionMode: "corner",
         rotationEnabled: prev.rotationEnabled, // Preserve rotation state
         scaleMultiplier: prev.rotationEnabled ? (isMobile ? 2 : 1.25) : 1.25, // Use completion scale if rotating
+        waitlistPosition: prev.waitlistPosition, // Preserve waitlist position
+        isWaitlistActive: false, // Not in waitlist when moving to corner
       };
     });
   }, [isMobile, isWaitlistInView, isGameComplete]);
@@ -53,6 +61,8 @@ export default function useEarthSequence(isGameComplete: boolean) {
         positionMode: "center",
         rotationEnabled: prev.rotationEnabled, // Should be true when game is complete
         scaleMultiplier: 1.0,
+        waitlistPosition: prev.waitlistPosition, // Preserve waitlist position
+        isWaitlistActive: true, // Waitlist section is active
       }));
     }
   }, [isGameComplete]);
@@ -66,6 +76,8 @@ export default function useEarthSequence(isGameComplete: boolean) {
         positionMode: "corner",
         rotationEnabled: prev.rotationEnabled,
         scaleMultiplier: prev.rotationEnabled ? (isMobile ? 2 : 1.25) : 1.25,
+        waitlistPosition: prev.waitlistPosition, // Preserve waitlist position
+        isWaitlistActive: false, // Waitlist is no longer active
       }));
     }
   }, [isGameInView, isMobile]);
@@ -170,6 +182,15 @@ export default function useEarthSequence(isGameComplete: boolean) {
     };
   }, [setWaitlistInView, setWaitlistOutOfView, isGameComplete]);
 
+  // Update waitlistPosition when prop changes
+  useEffect(() => {
+      setVisualState((prev) => ({
+        ...prev,
+        waitlistPosition,
+        // Preserve isWaitlistActive state
+      }));
+  }, [waitlistPosition]);
+
   // Handle game completion — updates color and rotation, preserves position
   useEffect(() => {
     if (isGameComplete) {
@@ -178,6 +199,8 @@ export default function useEarthSequence(isGameComplete: boolean) {
         positionMode: prev.positionMode, // Preserve current position mode (will be updated by waitlist/game observers if needed)
         rotationEnabled: true,
         scaleMultiplier: prev.positionMode === "center" ? 1.0 : (isMobile ? 2 : 1.25), // Center uses 1.0, corner uses completion scale
+        waitlistPosition: prev.waitlistPosition, // Preserve waitlist position
+        isWaitlistActive: prev.isWaitlistActive, // Preserve waitlist active state
       }));
       // If waitlist is already in view when game completes, move to center
       if (isWaitlistInView) {
@@ -194,6 +217,8 @@ export default function useEarthSequence(isGameComplete: boolean) {
           positionMode: shouldBeAtCorner ? "corner" : prev.positionMode, // Move to corner if waitlist forces center but game not complete
           rotationEnabled: false,
           scaleMultiplier: shouldBeAtCorner ? 1.25 : (prev.positionMode === "center" ? 1.0 : 1.25), // Use appropriate scale
+          waitlistPosition: prev.waitlistPosition, // Preserve waitlist position
+          isWaitlistActive: false, // Reset waitlist active state when game is reset
         };
       });
     }

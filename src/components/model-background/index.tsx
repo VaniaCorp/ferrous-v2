@@ -22,23 +22,31 @@ declare module "react" {
   }
 }
 
+export type WaitlistPosition = {
+  x?: number;
+  y?: number;
+  z?: number;
+};
+
 export type EarthVisualState = {
   colorMode: "gray" | "vibrant";
   positionMode: "corner" | "center";
   rotationEnabled: boolean;
   scaleMultiplier?: number;
+  waitlistPosition?: WaitlistPosition;
+  isWaitlistActive?: boolean;
 };
 
 // Mobile Earth Model Component - loads only mobile model
-function MobileEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
+function MobileEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, waitlistPosition, isWaitlistActive, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
   const { scene } = useGLTF("/models/earth-1k.glb", true);
-  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} isMobile={true} groupRef={groupRef} lightRef={lightRef} />;
+  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} waitlistPosition={waitlistPosition} isWaitlistActive={isWaitlistActive} isMobile={true} groupRef={groupRef} lightRef={lightRef} />;
 }
 
 // Desktop Earth Model Component - loads only desktop model
-function DesktopEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
+function DesktopEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, waitlistPosition, isWaitlistActive, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
   const { scene } = useGLTF("/models/earth-4k.glb", true);
-  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} isMobile={false} groupRef={groupRef} lightRef={lightRef} />;
+  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} waitlistPosition={waitlistPosition} isWaitlistActive={isWaitlistActive} isMobile={false} groupRef={groupRef} lightRef={lightRef} />;
 }
 
 // Shared content component to avoid code duplication
@@ -48,6 +56,8 @@ function EarthModelContent({
   positionMode,
   rotationEnabled,
   scaleMultiplier,
+  waitlistPosition,
+  isWaitlistActive,
   isMobile,
   groupRef,
   lightRef,
@@ -57,6 +67,8 @@ function EarthModelContent({
   positionMode: "corner" | "center";
   rotationEnabled: boolean;
   scaleMultiplier: number;
+  waitlistPosition?: WaitlistPosition;
+  isWaitlistActive?: boolean;
   isMobile: boolean;
   groupRef: React.RefObject<Group | null>;
   lightRef: React.RefObject<DirectionalLight | null>;
@@ -74,9 +86,28 @@ function EarthModelContent({
     () => new THREE.Vector3(0, isMobile ? 0.8 : -6.2, -370),
     [isMobile]
   );
+  
+  // Waitlist custom position (only used when positionMode is "center" and waitlistPosition is provided)
+  // Merges partial position with defaults, allowing individual axis updates
+  const waitlistTarget = useMemo(() => {
+    if (!waitlistPosition) return null;
+    
+    const defaultX = centerTarget.x;
+    const defaultY = centerTarget.y;
+    const defaultZ = centerTarget.z;
+    
+    return new THREE.Vector3(
+      waitlistPosition.x ?? defaultX,
+      waitlistPosition.y ?? defaultY,
+      waitlistPosition.z ?? defaultZ
+    );
+  }, [waitlistPosition, centerTarget]);
 
   // The desired target depending on positionMode
-  const desiredTarget = positionMode === "center" ? centerTarget : cornerTarget;
+  // Only use waitlistPosition when explicitly in waitlist section (isWaitlistActive), not during game section
+  const desiredTarget = positionMode === "center" && isWaitlistActive && waitlistTarget 
+    ? waitlistTarget 
+    : (positionMode === "center" ? centerTarget : cornerTarget);
 
   // Initialize position to corner immediately on mount
   useEffect(() => {
@@ -168,6 +199,8 @@ export function EarthModel({
   positionMode,
   rotationEnabled,
   scaleMultiplier = 1,
+  waitlistPosition,
+  isWaitlistActive,
 }: EarthVisualState) {
   const groupRef = useRef<Group | null>(null);
   const lightRef = useRef<DirectionalLight | null>(null);
@@ -186,6 +219,8 @@ export function EarthModel({
         positionMode={positionMode}
         rotationEnabled={rotationEnabled}
         scaleMultiplier={scaleMultiplier}
+        waitlistPosition={waitlistPosition}
+        isWaitlistActive={isWaitlistActive}
         groupRef={groupRef}
         lightRef={lightRef}
       />
@@ -198,6 +233,8 @@ export function EarthModel({
       positionMode={positionMode}
       rotationEnabled={rotationEnabled}
       scaleMultiplier={scaleMultiplier}
+      waitlistPosition={waitlistPosition}
+      isWaitlistActive={isWaitlistActive}
       groupRef={groupRef}
       lightRef={lightRef}
     />
