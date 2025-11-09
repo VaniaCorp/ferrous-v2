@@ -5,6 +5,7 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { SplitText } from "gsap/SplitText";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { waitForFonts } from "@/utils/waitForFonts";
 
 import Image from "next/image";
 
@@ -31,60 +32,76 @@ export function TextUpAnimation({
 }: TextUpAnimationProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useGSAP(() => {
-    if (typeof window !== 'undefined') {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduce) return; // Skip animation for reduced motion users
-    }
-    if (!containerRef.current) return;
+  useGSAP(
+    () => {
+      let split: SplitText | null = null;
+      let timeline: gsap.core.Timeline | null = null;
+      let tween: gsap.core.Tween | null = null;
+      let delayedRevert: gsap.core.Tween | null = null;
+      let cancelled = false;
 
-    // Split into characters
-    const split = new SplitText(containerRef.current, {
-      type: "chars,words",
-    });
+      const init = () => {
+        if (cancelled) return;
+        if (typeof window !== "undefined") {
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (reduce) return;
+        }
+        if (!containerRef.current) return;
 
-    // Set initial state
-    gsap.set(split.chars, { yPercent: 120, opacity: 1 });
-
-    // If shouldAnimate is true, trigger the animation immediately
-    if (shouldAnimate) {
-      const tl = gsap.timeline();
-      tl.to(split.chars, {
-        yPercent: 0,
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0,
-        ease: "power3.out",
-      });
-      // Add a small delay before reverting to ensure smooth completion
-      tl.call(() => {
-        gsap.delayedCall(0.2, () => {
-          split.revert();
+        split = new SplitText(containerRef.current, {
+          type: "chars,words",
         });
-      });
-    } else {
-      // Fallback to scroll-based animation if shouldAnimate is not provided
-      gsap.to(split.chars, {
-        yPercent: 0,
-        opacity: 1,
-        duration: 0.8,
-        stagger: 0,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top 80%",
-          toggleActions: "play none none reverse",
-        },
-        onComplete: () => {
-          split.revert();
-        },
-      });
-    }
 
-    return () => {
-      split.revert();
-    };
-  }, [shouldAnimate]);
+        gsap.set(split.chars, { yPercent: 120, opacity: 1 });
+
+        if (shouldAnimate) {
+          timeline = gsap.timeline();
+          timeline.to(split.chars, {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0,
+            ease: "power3.out",
+          });
+          timeline.call(() => {
+            delayedRevert = gsap.delayedCall(0.2, () => {
+              split?.revert();
+              split = null;
+            });
+          });
+        } else {
+          tween = gsap.to(split.chars, {
+            yPercent: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 80%",
+              toggleActions: "play none none reverse",
+            },
+            onComplete: () => {
+              split?.revert();
+              split = null;
+            },
+          });
+        }
+      };
+
+      waitForFonts().then(init);
+
+      return () => {
+        cancelled = true;
+        delayedRevert?.kill();
+        timeline?.kill();
+        tween?.kill();
+        split?.revert();
+        split = null;
+      };
+    },
+    { dependencies: [shouldAnimate] }
+  );
 
   return (
     <div
@@ -111,39 +128,49 @@ export function TextStaggerUpAnimation({
   const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    if (typeof window !== 'undefined') {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduce) return;
-    }
-    if (!containerRef.current) return;
+    let split: SplitText | null = null;
+    let tween: gsap.core.Tween | null = null;
+    let cancelled = false;
 
-    // Split into characters
-    const split = new SplitText(containerRef.current, {
-      type: "chars,words",
-    });
+    const init = () => {
+      if (cancelled) return;
+      if (typeof window !== "undefined") {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+      }
+      if (!containerRef.current) return;
 
-    // Set initial state
-    gsap.set(split.chars, { yPercent: 120, opacity: 1 });
+      split = new SplitText(containerRef.current, {
+        type: "chars,words",
+      });
 
-    // Animate on scroll
-    gsap.to(split.chars, {
-      yPercent: 0,
-      opacity: 1,
-      duration: 0.8,
-      stagger: 0.06,
-      ease: "power3.out",
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top 80%",
-        toggleActions: "play none none reverse",
-      },
-      onComplete: () => {
-        split.revert();
-      },
-    });
+      gsap.set(split.chars, { yPercent: 120, opacity: 1 });
+
+      tween = gsap.to(split.chars, {
+        yPercent: 0,
+        opacity: 1,
+        duration: 0.8,
+        stagger: 0.06,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 80%",
+          toggleActions: "play none none reverse",
+        },
+        onComplete: () => {
+          split?.revert();
+          split = null;
+        },
+      });
+    };
+
+    waitForFonts().then(init);
 
     return () => {
-      split.revert();
+      cancelled = true;
+      tween?.kill();
+      split?.revert();
+      split = null;
     };
   }, []);
 
@@ -172,44 +199,53 @@ export function TextParagraphAnimation({
   const containerRef = useRef<HTMLParagraphElement>(null);
 
   useGSAP(() => {
-    if (typeof window !== 'undefined') {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduce) return;
-    }
-    if (!containerRef.current) return;
+    let split: SplitText | null = null;
+    let tween: gsap.core.Tween | null = null;
+    let cancelled = false;
 
-    // Check if mobile device
-    const isMobile = window.innerWidth < 768;
+    const init = () => {
+      if (cancelled) return;
+      if (typeof window !== "undefined") {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+      }
+      if (!containerRef.current) return;
 
-    // Split into lines with better word handling
-    const split = new SplitText(containerRef.current, {
-      type: "lines",
-      linesClass: "line-overflow",
-      reduceWhiteSpace: false,
-    });
+      const isMobile = typeof window !== "undefined" ? window.innerWidth < 768 : false;
 
-    // Hide initially
-    gsap.set(split.lines, { yPercent: 120, opacity: 0 });
+      split = new SplitText(containerRef.current, {
+        type: "lines",
+        linesClass: "line-overflow",
+        reduceWhiteSpace: false,
+      });
 
-    // Animate each line upward into view
-    gsap.to(split.lines, {
-      yPercent: 0,
-      opacity: 1,
-      duration: 0.6,
-      ease: "power3.out",
-      stagger: 0.1,
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: isMobile ? "top 70%" : "top 85%", // Earlier trigger on mobile
-        toggleActions: "play none none reverse",
-      },
-      onComplete: () => {
-        split.revert(); // optional cleanup
-      },
-    });
+      gsap.set(split.lines, { yPercent: 120, opacity: 0 });
+
+      tween = gsap.to(split.lines, {
+        yPercent: 0,
+        opacity: 1,
+        duration: 0.6,
+        ease: "power3.out",
+        stagger: 0.1,
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: isMobile ? "top 70%" : "top 85%",
+          toggleActions: "play none none reverse",
+        },
+        onComplete: () => {
+          split?.revert();
+          split = null;
+        },
+      });
+    };
+
+    waitForFonts().then(init);
 
     return () => {
-      split.revert();
+      cancelled = true;
+      tween?.kill();
+      split?.revert();
+      split = null;
     };
   }, []);
 
@@ -249,58 +285,76 @@ export function ExpandingTextAnimation({
   const imageRef = useRef<HTMLImageElement>(null);
 
   useGSAP(() => {
-    if (!containerRef.current || !imageRef.current) return;
+    let split: SplitText | null = null;
+    let timeline: gsap.core.Timeline | null = null;
+    let cancelled = false;
 
-    // Split into words
-    const split = new SplitText(containerRef.current, {
-      type: "words",
-    });
+    const init = () => {
+      if (cancelled) return;
+      if (!containerRef.current || !imageRef.current) return;
 
-    // Set initial state - all text below viewport
-    gsap.set(split.words, { yPercent: 120, opacity: 0 });
-    gsap.set(imageRef.current, { scale: 0, opacity: 0 });
+      split = new SplitText(containerRef.current, {
+        type: "words",
+      });
 
-    // Create timeline for the sequence
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: containerRef.current,
-        start: "top 80%",
-        toggleActions: "play none none reverse",
-      },
-    });
+      gsap.set(split.words, { yPercent: 120, opacity: 0 });
+      gsap.set(imageRef.current, { scale: 0, opacity: 0 });
 
-    // Step 1: All text rises up together
-    tl.to(split.words, {
-      yPercent: 0,
-      opacity: 1,
-      duration: 0.8,
-      ease: "power3.out",
-      stagger: 0,
-    });
+      timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top 80%",
+          toggleActions: "play none none reverse",
+        },
+      });
 
-    // Step 2: Text expands to reveal image
-    tl.to(split.words, {
-      scale: 1.1,
-      duration: 0.6,
-      ease: "power2.out",
-    }, "-=0.3");
+      timeline.to(split.words, {
+        yPercent: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0,
+      });
 
-    // Step 3: Image appears and text returns to normal
-    tl.to(imageRef.current, {
-      scale: 1,
-      opacity: 1,
-      duration: 0.5,
-      ease: "back.out(1.7)",
-    }, "-=0.2");
+      timeline.to(
+        split.words,
+        {
+          scale: 1.1,
+          duration: 0.6,
+          ease: "power2.out",
+        },
+        "-=0.3"
+      );
 
-    tl.to(split.words, {
-      scale: 1,
-      duration: 0.4,
-      ease: "power2.out",
-    }, "-=0.3");
+      timeline.to(
+        imageRef.current,
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.5,
+          ease: "back.out(1.7)",
+        },
+        "-=0.2"
+      );
+
+      timeline.to(
+        split.words,
+        {
+          scale: 1,
+          duration: 0.4,
+          ease: "power2.out",
+        },
+        "-=0.3"
+      );
+    };
+
+    waitForFonts().then(init);
 
     return () => {
-      split.revert();
+      cancelled = true;
+      timeline?.kill();
+      split?.revert();
+      split = null;
     };
   }, []);
 
@@ -345,62 +399,84 @@ export function TextWithImageAnimation({
   const imageRef = useRef<HTMLImageElement>(null);
 
   useGSAP(() => {
-    if (typeof window !== 'undefined') {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduce) return;
-    }
-    if (!leftRef.current || !rightRef.current || !imageRef.current) return;
+    let leftSplit: SplitText | null = null;
+    let rightSplit: SplitText | null = null;
+    let timeline: gsap.core.Timeline | null = null;
+    let cancelled = false;
 
-    // Split both text sections into words
-    const leftSplit = new SplitText(leftRef.current, { type: "words" });
-    const rightSplit = new SplitText(rightRef.current, { type: "words" });
+    const init = () => {
+      if (cancelled) return;
+      if (typeof window !== "undefined") {
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+      }
+      if (!leftRef.current || !rightRef.current || !imageRef.current) return;
 
-    // Set initial state - all text below viewport
-    gsap.set([...leftSplit.words, ...rightSplit.words], { yPercent: 120, opacity: 0 });
-    gsap.set(imageRef.current, { scale: 0, opacity: 0 });
+      leftSplit = new SplitText(leftRef.current, { type: "words" });
+      rightSplit = new SplitText(rightRef.current, { type: "words" });
 
-    // Create timeline for the sequence
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: leftRef.current,
-        start: "top 80%",
-        toggleActions: "play none none reverse",
-      },
-    });
+      const allWords = [...(leftSplit.words ?? []), ...(rightSplit.words ?? [])];
 
-    // Step 1: All text rises up together
-    tl.to([...leftSplit.words, ...rightSplit.words], {
-      yPercent: 0,
-      opacity: 1,
-      duration: 0.8,
-      ease: "power3.out",
-      stagger: 0,
-    });
+      gsap.set(allWords, { yPercent: 120, opacity: 0 });
+      gsap.set(imageRef.current, { scale: 0, opacity: 0 });
 
-    // Step 2: Text expands to reveal image
-    tl.to([...leftSplit.words, ...rightSplit.words], {
-      scale: 1.1,
-      duration: 0.6,
-      ease: "power2.out",
-    }, "-=0.3");
+      timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: leftRef.current,
+          start: "top 80%",
+          toggleActions: "play none none reverse",
+        },
+      });
 
-    // Step 3: Image appears and text returns to normal
-    tl.to(imageRef.current, {
-      scale: 1,
-      opacity: 1,
-      duration: 0.5,
-      ease: "back.out(1.7)",
-    }, "-=0.2");
+      timeline.to(allWords, {
+        yPercent: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out",
+        stagger: 0,
+      });
 
-    tl.to([...leftSplit.words, ...rightSplit.words], {
-      scale: 1,
-      duration: 0.4,
-      ease: "power2.out",
-    }, "-=0.3");
+      timeline.to(
+        allWords,
+        {
+          scale: 1.1,
+          duration: 0.6,
+          ease: "power2.out",
+        },
+        "-=0.3"
+      );
+
+      timeline.to(
+        imageRef.current,
+        {
+          scale: 1,
+          opacity: 1,
+          duration: 0.5,
+          ease: "back.out(1.7)",
+        },
+        "-=0.2"
+      );
+
+      timeline.to(
+        allWords,
+        {
+          scale: 1,
+          duration: 0.4,
+          ease: "power2.out",
+        },
+        "-=0.3"
+      );
+    };
+
+    waitForFonts().then(init);
 
     return () => {
-      leftSplit.revert();
-      rightSplit.revert();
+      cancelled = true;
+      timeline?.kill();
+      leftSplit?.revert();
+      rightSplit?.revert();
+      leftSplit = null;
+      rightSplit = null;
     };
   }, []);
 

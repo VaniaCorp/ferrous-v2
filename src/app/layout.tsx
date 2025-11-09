@@ -4,6 +4,7 @@ import { DM_Sans, DM_Mono } from "next/font/google";
 import LenisProvider from "@/providers/lenis-provider";
 import "./globals.css"; 
 import { Toaster } from "sonner";
+import ReactDevtoolsVersionPatch from "@/components/ReactDevtoolsVersionPatch";
 
 const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
@@ -34,14 +35,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="preload" href="/fonts/Maesiez.otf" as="font" type="font/otf" crossOrigin="anonymous" />
-        {/* <link rel="preload" href="/videos/intro-vid.mp4" as="video" type="video/mp4" /> */}
       </head>
       <LenisProvider>
         <body
           className={`${dmSans.variable} ${robotoMono.variable} ${dmMono.variable} antialiased`}
           suppressHydrationWarning={true}
         >
+          <ReactDevtoolsVersionPatch />
           <Toaster richColors position="top-right" />
           {children}
         </body>

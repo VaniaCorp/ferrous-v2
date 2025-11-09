@@ -1,6 +1,6 @@
 "use client";
 import "@/components/model-background/AtmosphereMaterial";
-import React, { Suspense, useRef, useMemo, useEffect, useState } from "react";
+import React, { Suspense, useRef, useMemo, useEffect } from "react";
 import useDeviceSize from "@/hooks/useDeviceSize";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
@@ -8,6 +8,10 @@ import * as THREE from "three";
 import { Group, DirectionalLight } from "three";
 import { EffectComposer, HueSaturation, BrightnessContrast } from "@react-three/postprocessing";
 import { ThreeElements } from "@react-three/fiber";
+
+const EARTH_MODEL_URL = "https://ik.imagekit.io/umr3oj2idj/3D%20assets/earth-1k.glb?updatedAt=1762584360860";
+// const EARTH_MODEL_URL = "/models/earth-4k.glb";
+// const EARTH_MODEL_URL = "https://drive.google.com/file/d/1DrRClpMncVkusoEtoYUVvHx2ok2AcGs0/view?usp=sharing";
 
 // Re-declare JSX types to ensure TypeScript picks them up
 declare module "react" {
@@ -37,19 +41,6 @@ export type EarthVisualState = {
   isWaitlistActive?: boolean;
 };
 
-// Mobile Earth Model Component - loads only mobile model
-function MobileEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, waitlistPosition, isWaitlistActive, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
-  const { scene } = useGLTF("/models/earth-1k.glb", true);
-  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} waitlistPosition={waitlistPosition} isWaitlistActive={isWaitlistActive} isMobile={true} groupRef={groupRef} lightRef={lightRef} />;
-}
-
-// Desktop Earth Model Component - loads only desktop model
-function DesktopEarthModel({ colorMode, positionMode, rotationEnabled, scaleMultiplier = 1, waitlistPosition, isWaitlistActive, groupRef, lightRef }: EarthVisualState & { groupRef: React.RefObject<Group | null>, lightRef: React.RefObject<DirectionalLight | null> }) {
-  const { scene } = useGLTF("/models/earth-4k.glb", true);
-  return <EarthModelContent scene={scene} colorMode={colorMode} positionMode={positionMode} rotationEnabled={rotationEnabled} scaleMultiplier={scaleMultiplier} waitlistPosition={waitlistPosition} isWaitlistActive={isWaitlistActive} isMobile={false} groupRef={groupRef} lightRef={lightRef} />;
-}
-
-// Shared content component to avoid code duplication
 function EarthModelContent({
   scene,
   colorMode,
@@ -105,9 +96,12 @@ function EarthModelContent({
 
   // The desired target depending on positionMode
   // Only use waitlistPosition when explicitly in waitlist section (isWaitlistActive), not during game section
-  const desiredTarget = positionMode === "center" && isWaitlistActive && waitlistTarget 
-    ? waitlistTarget 
-    : (positionMode === "center" ? centerTarget : cornerTarget);
+  const desiredTarget = useMemo(() => {
+    if (positionMode === "center" && isWaitlistActive && waitlistTarget) {
+      return waitlistTarget;
+    }
+    return positionMode === "center" ? centerTarget : cornerTarget;
+  }, [positionMode, isWaitlistActive, waitlistTarget, centerTarget, cornerTarget]);
 
   // Initialize position to corner immediately on mount
   useEffect(() => {
@@ -205,6 +199,8 @@ export function EarthModel({
   const groupRef = useRef<Group | null>(null);
   const lightRef = useRef<DirectionalLight | null>(null);
   const { isMobile, width } = useDeviceSize();
+  const { scene } = useGLTF(EARTH_MODEL_URL, true) as { scene: Group };
+  const sceneInstance = useMemo(() => scene.clone(true), [scene]);
 
   // Wait for device detection (width will be null initially on server/initial render)
   if (width === null) {
@@ -212,29 +208,16 @@ export function EarthModel({
   }
 
   // Conditionally render only the model needed for the current device
-  if (isMobile) {
-    return (
-      <MobileEarthModel
-        colorMode={colorMode}
-        positionMode={positionMode}
-        rotationEnabled={rotationEnabled}
-        scaleMultiplier={scaleMultiplier}
-        waitlistPosition={waitlistPosition}
-        isWaitlistActive={isWaitlistActive}
-        groupRef={groupRef}
-        lightRef={lightRef}
-      />
-    );
-  }
-
   return (
-    <DesktopEarthModel
+    <EarthModelContent
+      scene={sceneInstance}
       colorMode={colorMode}
       positionMode={positionMode}
       rotationEnabled={rotationEnabled}
       scaleMultiplier={scaleMultiplier}
       waitlistPosition={waitlistPosition}
       isWaitlistActive={isWaitlistActive}
+      isMobile={isMobile}
       groupRef={groupRef}
       lightRef={lightRef}
     />
@@ -270,22 +253,12 @@ export default function ModelBackground(props: EarthVisualState) {
     </>
   );
 }
-
 // Device-aware preloading component - handles preloading based on device
 function PreloadModels() {
   useEffect(() => {
     if (typeof window === "undefined") return;
-    
-    const width = window.innerWidth;
-    const isMobileDevice = width < 768;
-    
-    if (isMobileDevice) {
-      // Only preload mobile model on mobile devices
-      useGLTF.preload("/models/earth-1k.glb");
-    } else {
-      // Only preload desktop model on desktop devices
-      useGLTF.preload("/models/earth-4k.glb");
-    }
+
+    useGLTF.preload(EARTH_MODEL_URL);
   }, []);
   
   return null;
@@ -294,12 +267,6 @@ function PreloadModels() {
 // Initialize preloading when component is imported (client-side only)
 if (typeof window !== "undefined") {
   // Start preloading immediately on client-side
-  const width = window.innerWidth;
-  const isMobileDevice = width < 768;
-  
-  if (isMobileDevice) {
-    useGLTF.preload("/models/earth-1k.glb");
-  } else {
-    useGLTF.preload("/models/earth-4k.glb");
-  }
+  useGLTF.preload(EARTH_MODEL_URL);
 }
+

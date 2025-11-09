@@ -317,7 +317,7 @@ export default function AnimatedCard({
                 <motion.h3
                   layout
                   transition={{ type: "spring", stiffness: 300, damping: 24 }}
-                  className="lg:!text-2xl font-bold leading-tight mb-4"
+                  className="lg:!text-2xl font-bold leading-tight mb-4 !font-sans"
                 >
                   {title}
                 </motion.h3>
@@ -381,7 +381,7 @@ export default function AnimatedCard({
               transition={{ delay: 0.1 }}
             >
               <motion.header className="w-full flex items-center justify-between">
-                <motion.h3 className="font-semibold text-4xl text-white max-w-2xl">
+                <motion.h3 className="font-semibold text-4xl text-white max-w-2xl !font-sans">
                   {title}
                 </motion.h3>
                 <motion.button
