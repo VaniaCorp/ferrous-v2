@@ -74,7 +74,7 @@ function EarthModelContent({
     [isMobile]
   );
   const centerTarget = useMemo(
-    () => new THREE.Vector3(0, isMobile ? 0.8 : -6.2, -570),
+    () => new THREE.Vector3(0, isMobile ? 0.8 : -6.2, isMobile ? -570 : -370),
     [isMobile]
   );
   
