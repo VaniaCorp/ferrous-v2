@@ -70,11 +70,11 @@ function EarthModelContent({
 
   // Target positions (world coordinates relative to group origin)
   const cornerTarget = useMemo(
-    () => new THREE.Vector3(isMobile ? -1.8 : -72.4, isMobile ? -72.2 : -132.6, isMobile ? -470 : -170),
+    () => new THREE.Vector3(isMobile ? -1.8 : -72.4, isMobile ? -72.2 : -132.6, isMobile ? -370 : -170),
     [isMobile]
   );
   const centerTarget = useMemo(
-    () => new THREE.Vector3(0, isMobile ? 0.8 : -6.2, -370),
+    () => new THREE.Vector3(0, isMobile ? 0.8 : -6.2, -570),
     [isMobile]
   );
   
