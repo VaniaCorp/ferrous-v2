@@ -113,7 +113,7 @@ export default function WaitlistDisplay() {
             as="h1"
             aria-label="Waitlist"
             aria-labelledby="waitlist"
-            className="lg:!text-[12em] md:!text-[8em] !text-[4em]"
+            className="lg:!text-[12em] md:!text-[8em] !text-[4em] !font-sans"
           >
             WAITLIST
           </TextStaggerUpAnimation>
@@ -122,7 +122,7 @@ export default function WaitlistDisplay() {
 
       <div className="relative z-10 mx-auto mt-auto">
         <Image
-          src={isMobile ? "/images/hgiku-mobile.svg" : "/images/hgiku.svg"}
+          src={isMobile ? "https://res.cloudinary.com/dgtoh3s2a/image/upload/v1762584130/hgiku-mobile_f6r0a7.svg" : "https://res.cloudinary.com/dgtoh3s2a/image/upload/v1762584127/hgiku_mesnkt.svg"}
           alt="Waitlist"
           width={isMobile ? 0 : 0}
           height={0}

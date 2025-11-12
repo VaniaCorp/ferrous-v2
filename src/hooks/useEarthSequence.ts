@@ -3,6 +3,19 @@ import { useState, useEffect, useCallback } from "react";
 import useDeviceSize from "./useDeviceSize";
 import type { EarthVisualState, WaitlistPosition } from "@/components/model-background";
 
+const areWaitlistPositionsEqual = (
+  a?: WaitlistPosition,
+  b?: WaitlistPosition
+): boolean => {
+  if (!a && !b) return true;
+  if (!a || !b) return false;
+  return (
+    (a.x ?? null) === (b.x ?? null) &&
+    (a.y ?? null) === (b.y ?? null) &&
+    (a.z ?? null) === (b.z ?? null)
+  );
+};
+
 export default function useEarthSequence(isGameComplete: boolean, waitlistPosition?: WaitlistPosition) {
   const { isMobile } = useDeviceSize();
 
@@ -184,11 +197,16 @@ export default function useEarthSequence(isGameComplete: boolean, waitlistPositi
 
   // Update waitlistPosition when prop changes
   useEffect(() => {
-      setVisualState((prev) => ({
+    setVisualState((prev) => {
+      if (areWaitlistPositionsEqual(prev.waitlistPosition, waitlistPosition)) {
+        return prev;
+      }
+
+      return {
         ...prev,
         waitlistPosition,
-        // Preserve isWaitlistActive state
-      }));
+      };
+    });
   }, [waitlistPosition]);
 
   // Handle game completion — updates color and rotation, preserves position

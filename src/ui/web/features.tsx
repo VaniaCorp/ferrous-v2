@@ -56,42 +56,58 @@ export default function Features() {
   }, [expandedCard]);
 
   return (
-    <div id="features" className="relative max-w-7xl xl:h-screen lg:px-16 my-12 mx-auto flex flex-col lg:flex-row gap-8 items-center justify-center xl:justify-between">
+    <div id="features" className="relative max-w-7xl xl:h-screen lg:px-16 my-12 mx-auto">
       <AnimatePresence mode="wait">
         {expandedCard === null ? (
-          features.map((feature) => (
-            <motion.div
-              key={feature.title}
-              layout
-              initial={{ opacity: 0, scale: 0.96, y: 40 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 40 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            >
-              <AnimatedCard
-                imageSrc={feature.image}
-                title={feature.title}
-                description={feature.description}
-                content={feature.content}
-                isExpanded={false}
-                onToggle={() => handleCardToggle(feature.title)}
-              />
-            </motion.div>
-          ))
+          <motion.div
+            key="feature-list"
+            className="flex flex-col lg:flex-row gap-8 items-center justify-center xl:justify-between w-full"
+            initial={{ opacity: 0, scale: 0.96, y: 40 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 40 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {features.map((feature) => (
+              <motion.div
+                key={feature.title}
+                layout
+                initial={{ opacity: 0, scale: 0.96, y: 40 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 40 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                <AnimatedCard
+                  imageSrc={feature.image}
+                  title={feature.title}
+                  description={feature.description}
+                  content={feature.content}
+                  isExpanded={false}
+                  onToggle={() => handleCardToggle(feature.title)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         ) : (
           (() => {
-            const feature = features.find(f => f.title === expandedCard);
+            const feature = features.find((f) => f.title === expandedCard);
             if (!feature) return null;
             return (
-              <AnimatedCard
-                key={feature.title}
-                imageSrc={feature.image}
-                title={feature.title}
-                description={feature.description}
-                content={feature.content}
-                isExpanded={true}
-                onToggle={handleClose}
-              />
+              <motion.div
+                key="feature-expanded"
+                initial={{ opacity: 0, scale: 0.96, y: 40 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 40 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              >
+                <AnimatedCard
+                  imageSrc={feature.image}
+                  title={feature.title}
+                  description={feature.description}
+                  content={feature.content}
+                  isExpanded={true}
+                  onToggle={handleClose}
+                />
+              </motion.div>
             );
           })()
         )}

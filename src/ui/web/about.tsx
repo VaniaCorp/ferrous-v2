@@ -96,11 +96,11 @@ export default function About() {
       >
         <div className="w-full max-w-4xl px-4 md:px-8 text-center">
           {isMobile ? (
-            <TextParagraphAnimation as={"h2"} className="!font-light text-lg md:text-xl lg:text-2xl leading-relaxed">
+            <TextParagraphAnimation as={"h2"} className="!font-light !font-sans text-lg md:text-xl lg:text-2xl leading-relaxed">
               Ferrous bridges emerging economies to the global money pool by connecting your local currency to a broad array of tokenized real world assets
             </TextParagraphAnimation>
           ) : (
-            <TextParagraphAnimation as={"h2"} className="!font-light text-xl md:text-2xl lg:text-3xl leading-relaxed">
+            <TextParagraphAnimation as={"h2"} className="!font-light !font-sans text-xl md:text-2xl lg:text-3xl leading-relaxed">
               Ferrous bridges emerging economies to the global money pool by connecting your local currency to a broad array of tokenized real world assets
             </TextParagraphAnimation>
           )}

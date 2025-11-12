@@ -1,10 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: 'export',
+  // output: 'export',
   trailingSlash: true,
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: "ik.imagekit.io"
+      },
+      {
+        protocol: 'https',
+        hostname: "ferrous.app"
+      },
+      {
+        protocol: 'https',
+        hostname: "ferrous-v2.netlify.app"
+      },
+      {
+        protocol: 'https',
+        hostname: "res.cloudinary.com"
+      }
+    ]
   },
   experimental: {
     optimizePackageImports: ['gsap', 'lenis'],

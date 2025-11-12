@@ -1,5 +1,5 @@
 // form-display.tsx
-import { useState, useCallback, useEffect, useActionState } from "react";
+import { useState, useCallback, useEffect, useActionState, startTransition } from "react";
 import { motion } from "motion/react";
 import Lottie from "lottie-react";
 import rocketFlight from "@/lottie/rocket-flight-lottie.json";
@@ -18,20 +18,22 @@ interface FormDisplayProps {
   animationState: AnimationState;
 }
 
+const createEmptyFormData = () => ({
+  fullname: "",
+  email: "",
+  company: "",
+  notes: "",
+});
+
 export default function FormDisplay({
   onSubmit,
   onBack,
   animationState
 }: FormDisplayProps) {
-  const [formData, setFormData] = useState({
-    fullname: '',
-    email: '',
-    company: '',
-    notes: ''
-  });
+  const [formData, setFormData] = useState(createEmptyFormData);
 
   // server action state
-  const [state, formAction] = useActionState<PartnerSignupActionState, FormData>(
+  const [state, formAction, isPending] = useActionState<PartnerSignupActionState, FormData>(
     partnerSignupAction,
     { success: true, message: undefined }
   );
@@ -41,20 +43,26 @@ export default function FormDisplay({
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     setSubmitted(true);
-    formAction(fd);
+    startTransition(() => {
+      formAction(fd);
+    });
   }, [formAction]);
 
   useEffect(() => {
-    if (!submitted) return;
+    if (!submitted || isPending) return;
+
     if (state.success === false) {
       toast.error(state.message || "Could not submit. Please try again.");
+      setSubmitted(false);
       return;
     }
     if (state.success === true) {
       toast.success(state.message || "Thanks! We'll be in touch.");
+      setFormData(createEmptyFormData());
+      setSubmitted(false);
       onSubmit();
     }
-  }, [submitted, state.success, state.message, onSubmit]);
+  }, [submitted, isPending, state, onSubmit]);
 
   return (
     <div className="w-full max-w-7xl h-full mx-auto flex flex-col xl:flex-row items-center justify-center gap-8">
@@ -88,7 +96,7 @@ export default function FormDisplay({
                   >
                     <header className="flex items-center gap-3">
                       <span className="inline-block w-12 h-12 bg-gray-200 rounded-xl"></span>
-                      <h3>{item?.question}</h3>
+                      <h3 className="!font-sans">{item?.question}</h3>
                     </header>
                     <p>{item?.answer}</p>
                   </motion.div>
@@ -104,7 +112,7 @@ export default function FormDisplay({
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <form action={(fd) => { setSubmitted(true); formAction(fd as unknown as FormData); }} onSubmit={handleSubmit} className="color-container p-6 space-y-12">
+              <form onSubmit={handleSubmit} className="color-container p-6 space-y-12">
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -172,8 +180,9 @@ export default function FormDisplay({
                   transition={{ duration: 0.6, delay: 1.0 }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
+                  disabled={isPending}
                 >
-                  Submit
+                  {isPending ? "Submitting..." : "Submit"}
                 </motion.button>
               </form>
             </motion.section>

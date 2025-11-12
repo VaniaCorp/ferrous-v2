@@ -193,7 +193,7 @@ export default function MiniGame({ onGameComplete }: MiniGameProps) {
           {mainTitleFragments.map((frag) => (
             <span key={frag.id} className="relative inline-block">
               <span
-                className={`transition-all duration-500 ${revealedTitleParts.includes(frag.id) ? 'opacity-100' : 'opacity-30'
+                className={`transition-all duration-500 !font-sans ${revealedTitleParts.includes(frag.id) ? 'opacity-100' : 'opacity-30'
                   }`}
               >
                 {frag.text}

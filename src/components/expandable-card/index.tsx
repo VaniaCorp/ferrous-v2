@@ -65,7 +65,7 @@ export default function ExpandableCard({
         aria-expanded={expanded}
         tabIndex={0}
       >
-        <h3 className="font-bold mb-2">{title}</h3>
+        <h3 className="font-bold mb-2 !font-sans">{title}</h3>
       </button>
       <AnimatePresence initial={false}>
         {expanded ? (

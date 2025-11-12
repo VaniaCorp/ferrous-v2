@@ -1,21 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-:root {
-  --background: #000000;
-  --foreground: #ededed;
-  --font-maesiez: "Maesiez", sans-serif;  
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-olive-transparent: #71460040;
-  --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-roboto-mono);
-  --font-dm-mono: var(--font-dm-mono);
-  --font-maesiez: var(--font-maesiez);
-}
 
 @font-face {
   font-family: "Maesiez";
@@ -24,6 +9,90 @@
   font-style: normal;
   font-display: swap;
 }
+
+@font-face {
+  font-family: "DMSans";
+  src: url("../fonts/DMSans.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/DMMono-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/DMMono-LightItalic.ttf") format("truetype");
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/DMMono-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/DMMono-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/DMMono-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/DMMono-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Roboto Mono";
+  src: url("../fonts/RobotoMono.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --background: #000000;
+  --foreground: #ededed;
+  --font-maesiez: "Maesiez", sans-serif;  
+  --font-dm-mono: "DM Mono", sans-serif;
+  --font-dm-sans: "DMSans", sans-serif;
+  --font-roboto-mono: "Roboto Mono", sans-serif;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-olive-transparent: #71460040;
+  --font-dm-sans: var(--font-dm-sans);
+  --font-mono: var(--font-roboto-mono);
+  --font-maesiez: var(--font-maesiez);
+  --font-dm-mono: var(--font-dm-mono);
+}
+
 
 button {
   outline: none;

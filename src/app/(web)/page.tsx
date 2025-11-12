@@ -26,6 +26,8 @@ import ModelBackground from '@/components/model-background';
 import useEarthSequence from '@/hooks/useEarthSequence';
 const Lottie = dynamic(() => import('lottie-react'), { ssr: false });
 
+// const glowAnimation = "https://res.cloudinary.com/dgtoh3s2a/raw/upload/v1762602127/glow_xnmcpu.json";
+
 export default function Home() {
   const [hideSocials, setHideSocials] = useState<boolean>(false);
   const [isGameComplete, setIsGameComplete] = useState(false);

@@ -48,7 +48,7 @@ export default function Partner() {
               whileTap={{ scale: 0.98 }}
             >
               <div className="absolute top-0 left-0 w-full h-full bg-olive-transparent pointer-events-none"></div>
-              <h1 className="md:!text-5xl lg:!text-7xl">Why Partner With Us?</h1>
+              <h1 className="md:!text-5xl lg:!text-7xl !font-sans">Why Partner With Us?</h1>
 
               <div className="w-max mt-auto space-x-1">
                 <motion.span 

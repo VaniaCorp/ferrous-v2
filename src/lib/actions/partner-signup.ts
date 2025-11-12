@@ -38,10 +38,15 @@ export async function partnerSignupAction(
       } else if (
         typeof err.data === "object" &&
         err.data !== null &&
-        "message" in err.data &&
-        typeof (err.data as { message: unknown }).message === "string"
+        ("message" in err.data || "error" in err.data)
       ) {
-        message = (err.data as { message: string }).message;
+        const errorData = err.data as { message?: unknown; error?: unknown };
+        const parts = [
+          typeof errorData.error === "string" ? errorData.error : null,
+        ].filter(Boolean) as string[];
+        if (parts.length > 0) {
+          message = parts.join(": ");
+        }
       }
     } else if (typeof err?.message === "string") {
       message = err.message;
