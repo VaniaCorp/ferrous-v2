@@ -86,7 +86,7 @@ function EarthModelContent({
     const defaultX = centerTarget.x;
     const defaultY = centerTarget.y;
     const defaultZ = centerTarget.z;
-    
+  
     return new THREE.Vector3(
       waitlistPosition.x ?? defaultX,
       waitlistPosition.y ?? defaultY,
@@ -122,8 +122,8 @@ function EarthModelContent({
     }
 
     // Smoothly move group to the target position
-    groupRef.current.position.lerp(desiredTarget, 0.12);
-  });
+    groupRef.current.position.lerp(desiredTarget, isMobile ? 0.06 : 0.12);
+  }, 100);
 
   // Ensure directional light stays fixed relative to the group (so the same globe spot remains lit)
   useEffect(() => {

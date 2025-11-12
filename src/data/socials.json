@@ -2,16 +2,11 @@
   {
     "title": "Twitter",
     "icon": "ri:twitter-x-line",
-    "link": ""
-  },
-  {
-    "title": "Facebook",
-    "icon": "iconoir:facebook",
-    "link": ""
+    "link": "https://x.com/MyrkleApp?t=Fb_aZqDbsdkEnSCgpnc2Hg&s=08"
   },
   {
     "title": "Whatsapp",
-    "icon": "ic:twotone-whatsapp",
+    "icon": "ic:round-discord",
     "link": ""
   }
 ]
