@@ -12,21 +12,21 @@ export async function partnerSignupAction(
   _prevState: PartnerSignupActionState,
   formData: FormData
 ): Promise<PartnerSignupActionState> {
-  const fullname = (formData.get("fullname") as string) || "";
+  const name = (formData.get("fullname") as string) || "";
   const email = (formData.get("email") as string) || "";
   const company_name = (formData.get("company_name") as string) || "";
-  const notes = (formData.get("notes") as string) || "";
+  const message = (formData.get("notes") as string) || "";
 
   const payload: MailListTypes = {
-    fullname,
+    name,
     email,
     company_name,
-    notes,
-    category: "PARTNERSHIP",
+    message,
+    // category: "PARTNERSHIP",
   };
 
   try {
-    const response = await postData<{ message?: string }>("users/maillist", payload);
+    const response = await postData<{ message?: string }>("inquiries/partnership", payload);
     return { success: true, message: response?.message };
   } catch (error) {
     let message = "Something went wrong. Please try again.";

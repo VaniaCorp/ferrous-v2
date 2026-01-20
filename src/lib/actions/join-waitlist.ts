@@ -1,7 +1,7 @@
 "use client";
 
 import { postData } from "@/config/api";
-import { WaitlistType } from "@/types";
+import { WaitlistType } from "@/types"; 
 
 export type JoinWaitlistActionState = {
   success: boolean;
@@ -16,13 +16,13 @@ export async function joinWaitlistAction(
   const email = formData.get("email") as string;
 
   const payload: WaitlistType = {
-    category: "WAITLIST",
+    // category: "WAITLIST",
     email,
   };
 
   try {
     // Post to your API (users/maillist)
-    const response = await postData<{ message?: string }>("users/maillist", payload);
+    const response = await postData<{ message?: string }>("inquiries/waitlist", payload);
     return { success: true, message: response?.message };
   } catch (error) {
     let message = "Something went wrong. Please try again.";

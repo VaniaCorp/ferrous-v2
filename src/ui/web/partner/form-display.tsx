@@ -1,4 +1,3 @@
-// form-display.tsx
 import { useState, useCallback, useEffect, useActionState, startTransition } from "react";
 import { motion } from "motion/react";
 import Lottie from "lottie-react";
@@ -79,7 +78,10 @@ export default function FormDisplay({
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <div className="color-container p-4 flex flex-col overflow-x-hidden">
+              <div
+                className="color-container p-4 flex flex-col overflow-x-hidden overflow-y-auto"
+                data-lenis-prevent
+              >
                 <button 
                   className="w-max p-4 border rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-300"
                   onClick={onBack}
@@ -112,7 +114,11 @@ export default function FormDisplay({
               exit={{ opacity: 0, scale: 0.9 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              <form onSubmit={handleSubmit} className="color-container p-6 space-y-12">
+              <form
+                onSubmit={handleSubmit}
+                className="color-container p-6 space-y-12 overflow-y-auto"
+                data-lenis-prevent
+              >
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}

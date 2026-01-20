@@ -1,9 +1,9 @@
 export type MailListTypes = {
   email: string;
-  fullname: string;
-  category: "WAITLIST" | "PARTNERSHIP";
+  name: string;
+  // category: "WAITLIST" | "PARTNERSHIP";
   company_name: string;
-  notes: string;
+  message: string;
 }
 
-export type WaitlistType = Pick<MailListTypes, "email" | "category">;
+export type WaitlistType = Pick<MailListTypes, "email">;
