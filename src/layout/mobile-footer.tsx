@@ -4,11 +4,12 @@ import Link from "next/link";
 import socials from "@/data/socials.json";
 import { useLenis } from "lenis/react";
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 
 export default function MobileFooter() {
   return (
     <footer className="relative w-full h-max flex items-center justify-between px-4 py-12">
-      <h3 className="!font-maesiez !text-4xl">FERROUS</h3>
+      <Image src="/images/logo.webp" alt="Ferrous logo" width={100} height={100} />
       <aside className="flex items-center gap-2">
         {socials.map((social) => (
           <Link key={social.title} href={social.link} target="_blank" rel="noopener noreferrer" className="w-max border border-white/20 backdrop-blur-sm rounded-lg p-1 transition-all duration-300 hover:scale-110 hover:border-white/40 hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus:ring-orange-500">

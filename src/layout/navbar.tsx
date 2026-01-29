@@ -2,6 +2,7 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { Icon } from "@iconify/react";
+import Image from "next/image";
 
 const navigation = [
   {
@@ -69,7 +70,7 @@ export default function Navbar() {
       role="banner"
       aria-label="Site Navigation"
     >
-      <Image src="/images/logo.png" alt="Ferrous logo" width={100} height={100} />
+      <Image src="/images/logo.webp" alt="Ferrous logo" width={100} height={100} />
       <nav
         className="flex items-center gap-2"
         aria-label="Main navigation"

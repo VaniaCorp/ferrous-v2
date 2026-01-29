@@ -163,8 +163,11 @@ export default function WaitlistDisplay() {
             <div className="w-full h-full mx-auto bg-black/65 backdrop-blur-sm">
               <div className="w-full h-full max-w-7xl mx-auto py-8 px-8 xl:px-4 xl:py-20 flex items-center justify-between">
                 <aside className="flex items-center gap-4">
-                  <span
-                    className="font-maesiez text-4xl cursor-pointer transition-colors duration-200 hover:text-orange-300"
+                  <Image
+                    src="/images/logo.webp"
+                    alt="Ferrous logo"
+                    width={100}
+                    height={100}
                     aria-label="Ferrous logo"
                     tabIndex={0}
                     onClick={scrollToTop}
@@ -174,9 +177,7 @@ export default function WaitlistDisplay() {
                         scrollToTop();
                       }
                     }}
-                  >
-                    FERROUS
-                  </span>
+                  />
 
                   <nav
                     className="flex items-center gap-2"

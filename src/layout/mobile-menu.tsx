@@ -3,6 +3,7 @@ import { Icon } from "@iconify/react/dist/iconify.js";
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
+import Image from "next/image";
 
 const navigation = [
   {
@@ -122,7 +123,7 @@ export default function MobileMenu() {
   return (
     <div className="fixed top-0 left-0 w-full z-[100]">
       <header className="absolute top-0 left-0 w-full flex items-center justify-between px-4 py-2 z-20">
-        <h3 className="!text-4xl !font-maesiez">FERROUS</h3>
+        <Image src="/images/logo.webp" alt="Ferrous logo" width={100} height={100} />
         <button
           onClick={() => setIsOpen(true)}
           aria-label="Open navigation menu"
