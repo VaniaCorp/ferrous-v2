@@ -13,5 +13,20 @@
     "title": "TikTok",
     "icon": "ri:tiktok-line",
     "link": "https://www.tiktok.com/@ferrousapp"
+  },
+  {
+    "title": "Facebook",
+    "icon": "ri:facebook-line",
+    "link": "https://www.facebook.com/profile.php?id=61589470551009"
+  },
+  {
+    "title": "YouTube",
+    "icon": "ri:youtube-line",
+    "link": "http://www.youtube.com/@Ferrousapp"
+  },
+  {
+    "title": "LinkedIn",
+    "icon": "ri:linkedin-box-line",
+    "link": "https://www.linkedin.com/company/ferrousapp/"
   }
 ]

@@ -18,7 +18,7 @@ const Features = dynamic(() => import('@/ui/web/features'), { ssr: false, loadin
 const About = dynamic(() => import('@/ui/web/about'), { ssr: false, loading: () => <section className="w-full min-h-[56rem]" aria-hidden /> });
 const Details = dynamic(() => import('@/ui/web/details'), { ssr: false, loading: () => <section className="w-full min-h-[40rem]" aria-hidden /> });
 const Partner = dynamic(() => import('@/ui/web/partner'), { ssr: false, loading: () => <section className="w-full min-h-[36rem]" aria-hidden /> });
-import InitialLoader from '@/layout/loader';
+// import InitialLoader from '@/layout/loader';
 import useDeviceSize from '@/hooks/useDeviceSize';
 import MobileMenu from '@/layout/mobile-menu';
 import { FooterTrack } from '@/layout/mobile-footer';
@@ -95,9 +95,9 @@ export default function Home() {
     setIsLoaderComplete(true);
   };
 
-  if (!isLoaderComplete) {
-    return <InitialLoader onComplete={handleLoaderComplete} pageRef={pageRef} />;
-  }
+  // if (!isLoaderComplete) {
+  //   return <InitialLoader onComplete={handleLoaderComplete} pageRef={pageRef} />;
+  // }
 
   return (
     <div
